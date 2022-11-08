@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+    <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/Common.xml">
+        <edmx:Include Alias="Common" Namespace="com.sap.vocabularies.Common.v1"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.xml">
+        <edmx:Include Alias="Core" Namespace="Org.OData.Core.V1"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/UI.xml">
+        <edmx:Include Alias="UI" Namespace="com.sap.vocabularies.UI.v1"/>
+    </edmx:Reference>
+    <edmx:DataServices>
+        <Schema Namespace="coreService" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+            <EntityContainer Name="EntityContainer">
+                <EntitySet Name="Orders" EntityType="coreService.Orders">
+                    <NavigationPropertyBinding Path="currency" Target="Currencies"/>
+                    <NavigationPropertyBinding Path="texts" Target="Orders_texts"/>
+                    <NavigationPropertyBinding Path="localized" Target="Orders_texts"/>
+                    <NavigationPropertyBinding Path="SiblingEntity" Target="Orders"/>
+                </EntitySet>
+                <EntitySet Name="Currencies" EntityType="coreService.Currencies">
+                    <NavigationPropertyBinding Path="texts" Target="Currencies_texts"/>
+                    <NavigationPropertyBinding Path="localized" Target="Currencies_texts"/>
+                </EntitySet>
+                <EntitySet Name="Orders_texts" EntityType="coreService.Orders_texts"/>
+                <EntitySet Name="Currencies_texts" EntityType="coreService.Currencies_texts"/>
+            </EntityContainer>
+            <EntityType Name="Orders">
+                <Key>
+                    <PropertyRef Name="ID"/>
+                    <PropertyRef Name="IsActiveEntity"/>
+                </Key>
+                <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="createdAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="createdBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="modifiedAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="modifiedBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="orderNo" Type="Edm.Int32"/>
+                <Property Name="salesOrg" Type="Edm.String" MaxLength="4"/>
+                <Property Name="distChan" Type="Edm.String" MaxLength="4"/>
+                <Property Name="division" Type="Edm.String" MaxLength="2"/>
+                <Property Name="soldToCustID" Type="Edm.String" MaxLength="8"/>
+                <Property Name="shipToCustID" Type="Edm.String" MaxLength="8"/>
+                <Property Name="reference" Type="Edm.String" MaxLength="1111"/>
+                <NavigationProperty Name="currency" Type="coreService.Currencies">
+                    <ReferentialConstraint Property="currency_code" ReferencedProperty="code"/>
+                </NavigationProperty>
+                <Property Name="currency_code" Type="Edm.String" MaxLength="3"/>
+                <Property Name="amount" Type="Edm.Decimal" Scale="variable"/>
+                <NavigationProperty Name="texts" Type="Collection(coreService.Orders_texts)">
+                    <OnDelete Action="Cascade"/>
+                </NavigationProperty>
+                <NavigationProperty Name="localized" Type="coreService.Orders_texts">
+                    <ReferentialConstraint Property="ID" ReferencedProperty="ID"/>
+                </NavigationProperty>
+                <Property Name="IsActiveEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="true"/>
+                <Property Name="HasActiveEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="false"/>
+                <Property Name="HasDraftEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="false"/>
+                <NavigationProperty Name="DraftAdministrativeData" Type="coreService.DraftAdministrativeData" ContainsTarget="true"/>
+                <NavigationProperty Name="SiblingEntity" Type="coreService.Orders"/>
+            </EntityType>
+            <EntityType Name="Currencies">
+                <Key>
+                    <PropertyRef Name="code"/>
+                </Key>
+                <Property Name="name" Type="Edm.String" MaxLength="255"/>
+                <Property Name="descr" Type="Edm.String" MaxLength="1000"/>
+                <Property Name="code" Type="Edm.String" MaxLength="3" Nullable="false"/>
+                <Property Name="symbol" Type="Edm.String" MaxLength="5"/>
+                <NavigationProperty Name="texts" Type="Collection(coreService.Currencies_texts)">
+                    <OnDelete Action="Cascade"/>
+                </NavigationProperty>
+                <NavigationProperty Name="localized" Type="coreService.Currencies_texts">
+                    <ReferentialConstraint Property="code" ReferencedProperty="code"/>
+                </NavigationProperty>
+            </EntityType>
+            <EntityType Name="DraftAdministrativeData">
+                <Key>
+                    <PropertyRef Name="DraftUUID"/>
+                </Key>
+                <Property Name="DraftUUID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="CreationDateTime" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="CreatedByUser" Type="Edm.String" MaxLength="256"/>
+                <Property Name="DraftIsCreatedByMe" Type="Edm.Boolean"/>
+                <Property Name="LastChangeDateTime" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="LastChangedByUser" Type="Edm.String" MaxLength="256"/>
+                <Property Name="InProcessByUser" Type="Edm.String" MaxLength="256"/>
+                <Property Name="DraftIsProcessedByMe" Type="Edm.Boolean"/>
+            </EntityType>
+            <EntityType Name="Orders_texts">
+                <Key>
+                    <PropertyRef Name="locale"/>
+                    <PropertyRef Name="ID"/>
+                </Key>
+                <Property Name="locale" Type="Edm.String" MaxLength="14" Nullable="false"/>
+                <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="reference" Type="Edm.String" MaxLength="1111"/>
+            </EntityType>
+            <EntityType Name="Currencies_texts">
+                <Key>
+                    <PropertyRef Name="locale"/>
+                    <PropertyRef Name="code"/>
+                </Key>
+                <Property Name="locale" Type="Edm.String" MaxLength="14" Nullable="false"/>
+                <Property Name="name" Type="Edm.String" MaxLength="255"/>
+                <Property Name="descr" Type="Edm.String" MaxLength="1000"/>
+                <Property Name="code" Type="Edm.String" MaxLength="3" Nullable="false"/>
+            </EntityType>
+            <Action Name="draftPrepare" IsBound="true" EntitySetPath="in">
+                <Parameter Name="in" Type="coreService.Orders"/>
+                <Parameter Name="SideEffectsQualifier" Type="Edm.String"/>
+                <ReturnType Type="coreService.Orders"/>
+            </Action>
+            <Action Name="draftActivate" IsBound="true" EntitySetPath="in">
+                <Parameter Name="in" Type="coreService.Orders"/>
+                <ReturnType Type="coreService.Orders"/>
+            </Action>
+            <Action Name="draftEdit" IsBound="true" EntitySetPath="in">
+                <Parameter Name="in" Type="coreService.Orders"/>
+                <Parameter Name="PreserveChanges" Type="Edm.Boolean"/>
+                <ReturnType Type="coreService.Orders"/>
+            </Action>
+            <Annotations Target="coreService.Orders">
+                <Annotation Term="UI.HeaderInfo">
+                    <Record Type="UI.HeaderInfoType">
+                        <PropertyValue Property="TypeName" String="{i18n>Order}"/>
+                            <PropertyValue Property="TypeNamePlural" String="{i18n>Orders}"/>
+                                <PropertyValue Property="Title">
+                                    <Record Type="UI.DataField">
+                                        <PropertyValue Property="Value" Path="orderNo"/>
+                                    </Record>
+                                </PropertyValue>
+                                <PropertyValue Property="Description">
+                                    <Record Type="UI.DataField">
+                                        <PropertyValue Property="Value" Path="reference"/>
+                                    </Record>
+                                </PropertyValue>
+                            </Record>
+                        </Annotation>
+                        <Annotation Term="UI.SelectionFields">
+                            <Collection>
+                                <PropertyPath>orderNo</PropertyPath>
+                                <PropertyPath>salesOrg</PropertyPath>
+                                <PropertyPath>distChan</PropertyPath>
+                                <PropertyPath>division</PropertyPath>
+                            </Collection>
+                        </Annotation>
+                        <Annotation Term="UI.Facets">
+                            <Collection>
+                                <Record Type="UI.ReferenceFacet">
+                                    <PropertyValue Property="Label" String="{i18n>Details}"/>
+                                        <PropertyValue Property="Target" AnnotationPath="@UI.FieldGroup#Details"/>
+                                    </Record>
+                                    <Record Type="UI.ReferenceFacet">
+                                        <PropertyValue Property="Label" String="{i18n>Admin}"/>
+                                            <PropertyValue Property="Target" AnnotationPath="@UI.FieldGroup#Admin"/>
+                                        </Record>
+                                    </Collection>
+                                </Annotation>
+                                <Annotation Term="UI.FieldGroup" Qualifier="Details">
+                                    <Record Type="UI.FieldGroupType">
+                                        <PropertyValue Property="Data">
+                                            <Collection>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="orderNo"/>
+                                                </Record>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="salesOrg"/>
+                                                </Record>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="distChan"/>
+                                                </Record>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="division"/>
+                                                </Record>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="soldToCustID"/>
+                                                </Record>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="shipToCustID"/>
+                                                </Record>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="reference"/>
+                                                </Record>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="currency_code"/>
+                                                </Record>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="amount"/>
+                                                </Record>
+                                            </Collection>
+                                        </PropertyValue>
+                                    </Record>
+                                </Annotation>
+                                <Annotation Term="UI.FieldGroup" Qualifier="Admin">
+                                    <Record Type="UI.FieldGroupType">
+                                        <PropertyValue Property="Data">
+                                            <Collection>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="ID"/>
+                                                </Record>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="createdBy"/>
+                                                </Record>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="createdAt"/>
+                                                </Record>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="modifiedBy"/>
+                                                </Record>
+                                                <Record Type="UI.DataField">
+                                                    <PropertyValue Property="Value" Path="modifiedAt"/>
+                                                </Record>
+                                            </Collection>
+                                        </PropertyValue>
+                                    </Record>
+                                </Annotation>
+                                <Annotation Term="UI.LineItem">
+                                    <Collection>
+                                        <Record Type="UI.DataField">
+                                            <PropertyValue Property="Value" Path="orderNo"/>
+                                        </Record>
+                                        <Record Type="UI.DataField">
+                                            <PropertyValue Property="Value" Path="salesOrg"/>
+                                        </Record>
+                                        <Record Type="UI.DataField">
+                                            <PropertyValue Property="Value" Path="distChan"/>
+                                        </Record>
+                                        <Record Type="UI.DataField">
+                                            <PropertyValue Property="Value" Path="division"/>
+                                        </Record>
+                                        <Record Type="UI.DataField">
+                                            <PropertyValue Property="Value" Path="soldToCustID"/>
+                                        </Record>
+                                        <Record Type="UI.DataField">
+                                            <PropertyValue Property="Value" Path="shipToCustID"/>
+                                        </Record>
+                                        <Record Type="UI.DataField">
+                                            <PropertyValue Property="Value" Path="reference"/>
+                                        </Record>
+                                        <Record Type="UI.DataField">
+                                            <PropertyValue Property="Value" Path="currency_code"/>
+                                        </Record>
+                                        <Record Type="UI.DataField">
+                                            <PropertyValue Property="Value" Path="amount"/>
+                                        </Record>
+                                    </Collection>
+                                </Annotation>
+                            </Annotations>
+                            <Annotations Target="coreService.EntityContainer/Orders">
+                                <Annotation Term="Common.DraftRoot">
+                                    <Record Type="Common.DraftRootType">
+                                        <PropertyValue Property="ActivationAction" String="coreService.draftActivate"/>
+                                        <PropertyValue Property="EditAction" String="coreService.draftEdit"/>
+                                        <PropertyValue Property="PreparationAction" String="coreService.draftPrepare"/>
+                                    </Record>
+                                </Annotation>
+                            </Annotations>
+                            <Annotations Target="coreService.Orders/ID">
+                                <Annotation Term="Common.Label" String="{i18n>ID}"/>
+                                </Annotations>
+                                <Annotations Target="coreService.Orders/createdAt">
+                                    <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                    <Annotation Term="Core.Immutable" Bool="true"/>
+                                    <Annotation Term="Core.Computed" Bool="true"/>
+                                    <Annotation Term="Common.Label" String="{i18n>CreatedAt}"/>
+                                    </Annotations>
+                                    <Annotations Target="coreService.Orders/createdBy">
+                                        <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                        <Annotation Term="Core.Immutable" Bool="true"/>
+                                        <Annotation Term="Core.Computed" Bool="true"/>
+                                        <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                            <Annotation Term="Common.Label" String="{i18n>CreatedBy}"/>
+                                            </Annotations>
+                                            <Annotations Target="coreService.Orders/modifiedAt">
+                                                <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                <Annotation Term="Core.Computed" Bool="true"/>
+                                                <Annotation Term="Common.Label" String="{i18n>ModifiedAt}"/>
+                                                </Annotations>
+                                                <Annotations Target="coreService.Orders/modifiedBy">
+                                                    <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                    <Annotation Term="Core.Computed" Bool="true"/>
+                                                    <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                                        <Annotation Term="Common.Label" String="{i18n>ModifiedBy}"/>
+                                                        </Annotations>
+                                                        <Annotations Target="coreService.Orders/orderNo">
+                                                            <Annotation Term="Common.Label" String="{i18n>orderNo}"/>
+                                                                <Annotation Term="Core.Computed" Bool="true"/>
+                                                            </Annotations>
+                                                            <Annotations Target="coreService.Orders/salesOrg">
+                                                                <Annotation Term="Common.Label" String="{i18n>salesOrg}"/>
+                                                                </Annotations>
+                                                                <Annotations Target="coreService.Orders/distChan">
+                                                                    <Annotation Term="Common.Label" String="{i18n>distChan}"/>
+                                                                    </Annotations>
+                                                                    <Annotations Target="coreService.Orders/division">
+                                                                        <Annotation Term="Common.Label" String="{i18n>division}"/>
+                                                                        </Annotations>
+                                                                        <Annotations Target="coreService.Orders/soldToCustID">
+                                                                            <Annotation Term="Common.Label" String="{i18n>soldToCustID}"/>
+                                                                            </Annotations>
+                                                                            <Annotations Target="coreService.Orders/shipToCustID">
+                                                                                <Annotation Term="Common.Label" String="{i18n>shipToCustID}"/>
+                                                                                </Annotations>
+                                                                                <Annotations Target="coreService.Orders/reference">
+                                                                                    <Annotation Term="Common.Label" String="{i18n>reference}"/>
+                                                                                    </Annotations>
+                                                                                    <Annotations Target="coreService.Orders/currency">
+                                                                                        <Annotation Term="Common.Label" String="{i18n>Currency}"/>
+                                                                                            <Annotation Term="Core.Description" String="{i18n>CurrencyCode.Description}"/>
+                                                                                            </Annotations>
+                                                                                            <Annotations Target="coreService.Orders/currency_code">
+                                                                                                <Annotation Term="Common.Label" String="{i18n>Currency}"/>
+                                                                                                    <Annotation Term="Common.ValueList">
+                                                                                                        <Record Type="Common.ValueListType">
+                                                                                                            <PropertyValue Property="Label" String="{i18n>Currency}"/>
+                                                                                                                <PropertyValue Property="CollectionPath" String="Currencies"/>
+                                                                                                                <PropertyValue Property="Parameters">
+                                                                                                                    <Collection>
+                                                                                                                        <Record Type="Common.ValueListParameterInOut">
+                                                                                                                            <PropertyValue Property="LocalDataProperty" PropertyPath="currency_code"/>
+                                                                                                                            <PropertyValue Property="ValueListProperty" String="code"/>
+                                                                                                                        </Record>
+                                                                                                                        <Record Type="Common.ValueListParameterDisplayOnly">
+                                                                                                                            <PropertyValue Property="ValueListProperty" String="name"/>
+                                                                                                                        </Record>
+                                                                                                                    </Collection>
+                                                                                                                </PropertyValue>
+                                                                                                            </Record>
+                                                                                                        </Annotation>
+                                                                                                        <Annotation Term="Core.Description" String="{i18n>CurrencyCode.Description}"/>
+                                                                                                        </Annotations>
+                                                                                                        <Annotations Target="coreService.Orders/amount">
+                                                                                                            <Annotation Term="Common.Label" String="{i18n>amount}"/>
+                                                                                                            </Annotations>
+                                                                                                            <Annotations Target="coreService.Orders/IsActiveEntity">
+                                                                                                                <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                            </Annotations>
+                                                                                                            <Annotations Target="coreService.Orders/HasActiveEntity">
+                                                                                                                <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                            </Annotations>
+                                                                                                            <Annotations Target="coreService.Orders/HasDraftEntity">
+                                                                                                                <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                            </Annotations>
+                                                                                                            <Annotations Target="coreService.Orders/DraftAdministrativeData">
+                                                                                                                <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                            </Annotations>
+                                                                                                            <Annotations Target="coreService.Currencies">
+                                                                                                                <Annotation Term="UI.Identification">
+                                                                                                                    <Collection>
+                                                                                                                        <Record Type="UI.DataField">
+                                                                                                                            <PropertyValue Property="Value" Path="name"/>
+                                                                                                                        </Record>
+                                                                                                                    </Collection>
+                                                                                                                </Annotation>
+                                                                                                            </Annotations>
+                                                                                                            <Annotations Target="coreService.Currencies/name">
+                                                                                                                <Annotation Term="Common.Label" String="{i18n>Name}"/>
+                                                                                                                </Annotations>
+                                                                                                                <Annotations Target="coreService.Currencies/descr">
+                                                                                                                    <Annotation Term="Common.Label" String="{i18n>Description}"/>
+                                                                                                                    </Annotations>
+                                                                                                                    <Annotations Target="coreService.Currencies/code">
+                                                                                                                        <Annotation Term="Common.Text" Path="name"/>
+                                                                                                                        <Annotation Term="Common.Label" String="{i18n>CurrencyCode}"/>
+                                                                                                                        </Annotations>
+                                                                                                                        <Annotations Target="coreService.Currencies/symbol">
+                                                                                                                            <Annotation Term="Common.Label" String="{i18n>CurrencySymbol}"/>
+                                                                                                                            </Annotations>
+                                                                                                                            <Annotations Target="coreService.DraftAdministrativeData">
+                                                                                                                                <Annotation Term="Common.Label" String="{i18n>Draft_DraftAdministrativeData}"/>
+                                                                                                                                </Annotations>
+                                                                                                                                <Annotations Target="coreService.DraftAdministrativeData/DraftUUID">
+                                                                                                                                    <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>Draft_DraftUUID}"/>
+                                                                                                                                    </Annotations>
+                                                                                                                                    <Annotations Target="coreService.DraftAdministrativeData/CreationDateTime">
+                                                                                                                                        <Annotation Term="Common.Label" String="{i18n>Draft_CreationDateTime}"/>
+                                                                                                                                        </Annotations>
+                                                                                                                                        <Annotations Target="coreService.DraftAdministrativeData/CreatedByUser">
+                                                                                                                                            <Annotation Term="Common.Label" String="{i18n>Draft_CreatedByUser}"/>
+                                                                                                                                            </Annotations>
+                                                                                                                                            <Annotations Target="coreService.DraftAdministrativeData/DraftIsCreatedByMe">
+                                                                                                                                                <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                <Annotation Term="Common.Label" String="{i18n>Draft_DraftIsCreatedByMe}"/>
+                                                                                                                                                </Annotations>
+                                                                                                                                                <Annotations Target="coreService.DraftAdministrativeData/LastChangeDateTime">
+                                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>Draft_LastChangeDateTime}"/>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="coreService.DraftAdministrativeData/LastChangedByUser">
+                                                                                                                                                        <Annotation Term="Common.Label" String="{i18n>Draft_LastChangedByUser}"/>
+                                                                                                                                                        </Annotations>
+                                                                                                                                                        <Annotations Target="coreService.DraftAdministrativeData/InProcessByUser">
+                                                                                                                                                            <Annotation Term="Common.Label" String="{i18n>Draft_InProcessByUser}"/>
+                                                                                                                                                            </Annotations>
+                                                                                                                                                            <Annotations Target="coreService.DraftAdministrativeData/DraftIsProcessedByMe">
+                                                                                                                                                                <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                                <Annotation Term="Common.Label" String="{i18n>Draft_DraftIsProcessedByMe}"/>
+                                                                                                                                                                </Annotations>
+                                                                                                                                                                <Annotations Target="coreService.Orders_texts/locale">
+                                                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>LanguageCode}"/>
+                                                                                                                                                                    </Annotations>
+                                                                                                                                                                    <Annotations Target="coreService.Currencies_texts/locale">
+                                                                                                                                                                        <Annotation Term="Common.Label" String="{i18n>LanguageCode}"/>
+                                                                                                                                                                        </Annotations>
+                                                                                                                                                                        <Annotations Target="coreService.Currencies_texts/name">
+                                                                                                                                                                            <Annotation Term="Common.Label" String="{i18n>Name}"/>
+                                                                                                                                                                            </Annotations>
+                                                                                                                                                                            <Annotations Target="coreService.Currencies_texts/descr">
+                                                                                                                                                                                <Annotation Term="Common.Label" String="{i18n>Description}"/>
+                                                                                                                                                                                </Annotations>
+                                                                                                                                                                                <Annotations Target="coreService.Currencies_texts/code">
+                                                                                                                                                                                    <Annotation Term="Common.Text" Path="name"/>
+                                                                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>CurrencyCode}"/>
+                                                                                                                                                                                    </Annotations>
+                                                                                                                                                                                </Schema>
+                                                                                                                                                                            </edmx:DataServices>
+                                                                                                                                                                        </edmx:Edmx>

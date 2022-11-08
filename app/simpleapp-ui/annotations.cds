@@ -1,0 +1,1 @@
+using coreService as service from '../../srv/coreService';
